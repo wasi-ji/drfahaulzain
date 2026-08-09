@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, AlertCircle, Check, ArrowLeft, Sparkles, AlertTriangle } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, AlertCircle, Check, ArrowLeft, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
 import { ConsultationMode, PhysicalLocation, TimeSlot } from '../../types/booking';
-import { generateTimeSlots, validateBookingDate, getBookedSlotIds, LOCATION_DETAILS } from '../../services/bookingEngine';
+import { generateTimeSlots, validateBookingDate, getBookedSlotIdsAsync, LOCATION_DETAILS } from '../../services/bookingEngine';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface Step3Props {
@@ -70,11 +70,34 @@ export const Step3DateSlot: React.FC<Step3Props> = ({
     return days;
   }, [currentMonth]);
 
-  // Generate available slots for selectedDate
-  const availableSlots = useMemo(() => {
-    if (!selectedDate) return [];
-    const bookedIds = getBookedSlotIds();
-    return generateTimeSlots(selectedDate, mode, location, bookedIds, now);
+  // Generate available slots for selectedDate.
+  // Booked slots are fetched from the central database (Supabase) each time the
+  // date/mode/location changes, so a slot booked from ANY device is correctly
+  // shown as unavailable here — not just bookings made on this browser.
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setAvailableSlots([]);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingSlots(true);
+
+    getBookedSlotIdsAsync()
+      .then((bookedIds) => {
+        if (cancelled) return;
+        setAvailableSlots(generateTimeSlots(selectedDate, mode, location, bookedIds, now));
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingSlots(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedDate, mode, location, now]);
 
   // Month navigation handlers
@@ -230,6 +253,11 @@ export const Step3DateSlot: React.FC<Step3Props> = ({
                   ? 'آج کا وقت دوپہر 12:00 بجے سے تجاوز کر چکا ہے۔ برائے مہربانی کیلنڈر سے آئندہ کل یا کسی اور آئندہ دن کی تاریخ کا انتخاب کریں۔'
                   : 'Current time is past 12:00 PM Noon. Same-day bookings are closed. Please choose tomorrow or a future date on the calendar.'}
               </p>
+            </div>
+          ) : isLoadingSlots ? (
+            <div className="bg-clinical-50 border border-dashed border-clinical-200 rounded-2xl p-6 text-center text-xs text-clinical-400 font-medium space-y-2">
+              <Loader2 className="w-6 h-6 text-clinical-300 mx-auto animate-spin" />
+              <p>{isUrdu ? 'دستیاب سلاٹس چیک ہو رہے ہیں...' : 'Checking live availability...'}</p>
             </div>
           ) : availableSlots.length === 0 ? (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-900 text-xs text-center font-medium">

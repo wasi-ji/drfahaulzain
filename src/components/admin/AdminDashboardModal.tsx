@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useLanguage } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
 import { BookingRecord } from "../../types/booking";
-import { getSavedBookings } from "../../services/bookingEngine";
+import { getAllBookingsAsync } from "../../services/bookingEngine";
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -53,14 +53,24 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
   const [roleToChange, setRoleToChange] = useState<{ userId: string; userName: string; currentRole: string } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const loadBookings = () => {
-    setBookingsList(getSavedBookings());
+  const loadBookings = async () => {
+    const bookings = await getAllBookingsAsync();
+    setBookingsList(bookings);
   };
 
   useEffect(() => {
     if (isOpen) {
       loadBookings();
       refreshData();
+
+      // Auto-refresh every 15s while the dashboard is open, so a booking or
+      // change made on another device (or by a patient) shows up here without
+      // the admin having to manually click Refresh.
+      const interval = setInterval(() => {
+        loadBookings();
+        refreshData();
+      }, 15000);
+      return () => clearInterval(interval);
     }
   }, [isOpen]);
 
@@ -113,8 +123,8 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
   });
 
   // Handle Cancel Appointment Execution
-  const executeCancelBooking = (bookingId: string) => {
-    const res = cancelAppointment(bookingId);
+  const executeCancelBooking = async (bookingId: string) => {
+    const res = await cancelAppointment(bookingId);
     if (res.success) {
       setActionNotice({ type: "success", message: isUrdu ? res.messageUr : res.messageEn });
       loadBookings();
@@ -124,9 +134,9 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
   };
 
   // Handle Block / Unblock Date
-  const handleToggleBlockDate = (dateStr: string) => {
+  const handleToggleBlockDate = async (dateStr: string) => {
     setActionNotice(null);
-    const res = toggleBlockDate(dateStr, blockReasonEn, blockReasonUr);
+    const res = await toggleBlockDate(dateStr, blockReasonEn, blockReasonUr);
     if (res.success) {
       setActionNotice({ type: "success", message: isUrdu ? res.messageUr : res.messageEn });
       setTargetBlockDate("");
@@ -150,20 +160,18 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
     }
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     setActionNotice(null);
-    loadBookings();
+    await loadBookings();
     refreshData();
-    setTimeout(() => {
-      setIsRefreshing(false);
-      setActionNotice({
-        type: "success",
-        message: isUrdu
-          ? "ڈیٹا بیس کی معلومات کامیابی سے ریفریش ہو گئی ہیں۔ تمام تازہ ترین بکنگز، صارف اور بلاک شدہ تاریخیں لوڈ ہو گئی ہیں۔"
-          : "Database successfully refreshed! Latest appointments, users, and date records loaded.",
-      });
-    }, 450);
+    setIsRefreshing(false);
+    setActionNotice({
+      type: "success",
+      message: isUrdu
+        ? "ڈیٹا بیس کی معلومات کامیابی سے ریفریش ہو گئی ہیں۔ تمام تازہ ترین بکنگز، صارف اور بلاک شدہ تاریخیں لوڈ ہو گئی ہیں۔"
+        : "Database successfully refreshed! Latest appointments, users, and date records loaded.",
+    });
   };
 
   const handlePrintReport = () => {

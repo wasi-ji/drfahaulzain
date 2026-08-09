@@ -1,8 +1,69 @@
 import { BlockedDateRecord, UserAccount } from '../types/auth';
 import { BookingRecord } from '../types/booking';
+import { getAllBookingsAsync, updateBookingStatusRemote } from './bookingEngine';
 
 const BLOCKED_DATES_KEY = 'dr_fahad_blocked_dates';
 const BOOKINGS_KEY = 'dr_fahad_appointment_bookings';
+
+/**
+  Supabase connection helpers (mirrors bookingEngine.ts) for the blocked_dates table,
+  so a date blocked/unblocked by admin on one device is visible on every device.
+*/
+function getSupabaseConfig(): { url: string; key: string } | null {
+  const url = (import.meta as any).env?.VITE_SUPABASE_URL;
+  const key = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return { url, key };
+}
+
+async function supabaseRequest(path: string, options: RequestInit = {}): Promise<Response | null> {
+  const config = getSupabaseConfig();
+  if (!config) return null;
+  try {
+    return await fetch(`${config.url}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: config.key,
+        Authorization: `Bearer ${config.key}`,
+        ...(options.headers || {}),
+      },
+    });
+  } catch (err) {
+    console.info('Supabase request skipped or failed gracefully:', err);
+    return null;
+  }
+}
+
+function mapRowToBlockedDate(row: any): BlockedDateRecord {
+  return {
+    dateStr: row.date_str,
+    reasonEn: row.reason_en,
+    reasonUr: row.reason_ur,
+    blockedBy: row.blocked_by,
+    blockedAt: row.blocked_at,
+  };
+}
+
+/**
+  Fetch blocked dates from Supabase and refresh the local cache with them,
+  so every synchronous local read (isDateBlocked, getBlockedDateRecord) stays
+  reasonably fresh across devices without needing to become async everywhere.
+*/
+export async function syncBlockedDatesFromSupabase(): Promise<BlockedDateRecord[]> {
+  const res = await supabaseRequest('blocked_dates?select=*&order=date_str.asc');
+  if (!res || !res.ok) {
+    return getBlockedDates();
+  }
+  try {
+    const rows = await res.json();
+    const records: BlockedDateRecord[] = rows.map(mapRowToBlockedDate);
+    localStorage.setItem(BLOCKED_DATES_KEY, JSON.stringify(records));
+    return records;
+  } catch {
+    return getBlockedDates();
+  }
+}
 
 /**
  * Get all blocked dates records
@@ -47,12 +108,12 @@ export interface BlockDateResult {
  * 2. There are NO active (non-cancelled) appointments on that date.
  * If active appointments exist, admin must cancel them first.
  */
-export function blockDate(
+export async function blockDate(
   dateStr: string,
   reasonEn: string = 'Clinic closed by administration',
   reasonUr: string = 'کلینک انتظامیہ کی جانب سے تاریخ بلاک کی گئی ہے',
   adminUser?: UserAccount
-): BlockDateResult {
+): Promise<BlockDateResult> {
   const now = new Date();
   const [year, month, day] = dateStr.split('-').map(Number);
   const targetDateObj = new Date(year, month - 1, day, 23, 59, 59);
@@ -68,16 +129,9 @@ export function blockDate(
     };
   }
 
-  // Check if active (non-cancelled) appointments exist on this date
-  const rawBookings = localStorage.getItem(BOOKINGS_KEY);
-  let bookings: BookingRecord[] = [];
-  if (rawBookings) {
-    try {
-      bookings = JSON.parse(rawBookings);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  // Check if active (non-cancelled) appointments exist on this date — checked against
+  // the CENTRAL database (Supabase), so bookings made on any device are counted, not just this one.
+  const bookings: BookingRecord[] = await getAllBookingsAsync();
 
   const activeBookingsOnDate = bookings.filter(
     (b) => b.selectedDate === dateStr && b.status !== 'cancelled'
@@ -92,19 +146,32 @@ export function blockDate(
     };
   }
 
-  // Save blocked date
+  // Save blocked date locally (instant UI feedback)
   const existing = getBlockedDates();
+  const newRecord: BlockedDateRecord = {
+    dateStr,
+    reasonEn,
+    reasonUr,
+    blockedBy: adminUser?.email || 'Admin',
+    blockedAt: new Date().toISOString(),
+  };
   if (!existing.some((item) => item.dateStr === dateStr)) {
-    const newRecord: BlockedDateRecord = {
-      dateStr,
-      reasonEn,
-      reasonUr,
-      blockedBy: adminUser?.email || 'Admin',
-      blockedAt: new Date().toISOString(),
-    };
     existing.push(newRecord);
     localStorage.setItem(BLOCKED_DATES_KEY, JSON.stringify(existing));
   }
+
+  // Sync to Supabase so every device sees this blocked date
+  await supabaseRequest('blocked_dates', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({
+      date_str: dateStr,
+      reason_en: reasonEn,
+      reason_ur: reasonUr,
+      blocked_by: newRecord.blockedBy,
+      blocked_at: newRecord.blockedAt,
+    }),
+  });
 
   return {
     success: true,
@@ -114,37 +181,54 @@ export function blockDate(
 }
 
 /**
- * Unblock a previously disallowed date
+ * Unblock a previously disallowed date (local + Supabase)
  */
-export function unblockDate(dateStr: string): void {
+export async function unblockDate(dateStr: string): Promise<void> {
   const existing = getBlockedDates();
   const filtered = existing.filter((item) => item.dateStr !== dateStr);
   localStorage.setItem(BLOCKED_DATES_KEY, JSON.stringify(filtered));
+
+  await supabaseRequest(`blocked_dates?date_str=eq.${encodeURIComponent(dateStr)}`, {
+    method: 'DELETE',
+    headers: { Prefer: 'return=minimal' },
+  });
 }
 
 /**
- * Admin Action: Cancel an appointment by ID
+ * Admin Action: Cancel an appointment by ID.
+ * Marks the booking as 'cancelled' (instead of deleting it) both locally and on
+ * Supabase, so the slot frees up everywhere and a record is kept for reports.
  */
-export function cancelAppointmentByAdmin(bookingId: string): { success: boolean; messageEn: string; messageUr: string } {
+export async function cancelAppointmentByAdmin(
+  bookingId: string
+): Promise<{ success: boolean; messageEn: string; messageUr: string }> {
   try {
-    const rawBookings = localStorage.getItem(BOOKINGS_KEY);
-    if (!rawBookings) return { success: false, messageEn: 'Booking record not found', messageUr: 'اپوائنٹمنٹ کی تفصیلات نہیں ملیں' };
+    // Find the booking across BOTH local storage and Supabase, since the admin
+    // dashboard list can include bookings made on other devices.
+    const allBookings: BookingRecord[] = await getAllBookingsAsync();
+    const target = allBookings.find((b) => b.id === bookingId);
 
-    let bookings: BookingRecord[] = JSON.parse(rawBookings);
-    const index = bookings.findIndex((b) => b.id === bookingId);
-
-    if (index === -1) {
+    if (!target) {
       return { success: false, messageEn: 'Booking record not found', messageUr: 'اپوائنٹمنٹ کی تفصیلات نہیں ملیں' };
     }
 
-    // Remove the cancelled appointment record completely
-    const updatedBookings = bookings.filter((b) => b.id !== bookingId);
-    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updatedBookings));
+    // Update local cache if this booking exists there
+    const rawBookings = localStorage.getItem(BOOKINGS_KEY);
+    if (rawBookings) {
+      const localBookings: BookingRecord[] = JSON.parse(rawBookings);
+      const updatedLocal = localBookings.map((b) =>
+        b.referenceCode === target.referenceCode ? { ...b, status: 'cancelled' as const } : b
+      );
+      localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updatedLocal));
+    }
+
+    // Update the central Supabase record so it's cancelled on every device
+    await updateBookingStatusRemote(target.referenceCode, 'cancelled');
 
     return {
       success: true,
-      messageEn: 'Appointment has been successfully cancelled and removed.',
-      messageUr: 'اپوائنٹمنٹ کامیابی سے منسوخ اور ختم کر دی گئی ہے۔',
+      messageEn: 'Appointment has been successfully cancelled.',
+      messageUr: 'اپوائنٹمنٹ کامیابی سے منسوخ کر دی گئی ہے۔',
     };
   } catch (err) {
     console.error('Error cancelling appointment:', err);

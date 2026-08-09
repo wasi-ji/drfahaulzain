@@ -281,6 +281,119 @@ export function generateReferenceCode(): string {
 }
 
 /**
+  Supabase connection helpers.
+  All bookings live in the 'appointments' table so every device (patient or admin)
+  reads/writes the same central source of truth instead of per-browser localStorage.
+*/
+function getSupabaseConfig(): { url: string; key: string } | null {
+  const url = (import.meta as any).env?.VITE_SUPABASE_URL;
+  const key = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return { url, key };
+}
+
+async function supabaseRequest(
+  path: string,
+  options: RequestInit = {}
+): Promise<Response | null> {
+  const config = getSupabaseConfig();
+  if (!config) return null;
+  try {
+    return await fetch(`${config.url}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: config.key,
+        Authorization: `Bearer ${config.key}`,
+        ...(options.headers || {}),
+      },
+    });
+  } catch (err) {
+    console.info('Supabase request skipped or failed gracefully:', err);
+    return null;
+  }
+}
+
+/**
+  Convert a raw Supabase 'appointments' row back into a BookingRecord
+  that the rest of the app (admin dashboard, slot picker) already understands.
+*/
+function mapRowToBookingRecord(row: any): BookingRecord {
+  return {
+    id: row.id,
+    referenceCode: row.reference_code,
+    step: 6,
+    mode: row.mode,
+    location: row.location,
+    country: row.country
+      ? {
+          code: '',
+          name: row.country,
+          currency: (row.currency || 'PKR') as 'PKR' | 'USD',
+          fee: Number(row.fee) || 0,
+          flag: '',
+          isPakistan: row.currency === 'PKR',
+        }
+      : null,
+    selectedDate: row.booking_date,
+    selectedSlot: row.slot_time
+      ? { id: `${row.booking_date}_${row.slot_time}`, time24: '', label: row.slot_time, available: false }
+      : null,
+    patient: {
+      fullName: row.patient_name,
+      age: row.patient_age != null ? String(row.patient_age) : '',
+      phone: row.patient_phone,
+      email: row.patient_email,
+      reason: row.patient_reason,
+    },
+    paymentMethod: row.payment_method,
+    isPaid: !!row.is_paid,
+    createdAt: row.created_at,
+    status: row.status,
+  };
+}
+
+/**
+  Fetch all bookings from Supabase (central database).
+  Falls back to an empty array if Supabase is unreachable/unconfigured,
+  so callers should merge this with getSavedBookings() for offline safety.
+*/
+export async function fetchBookingsFromSupabase(): Promise<BookingRecord[]> {
+  const res = await supabaseRequest('appointments?select=*&order=created_at.desc');
+  if (!res || !res.ok) return [];
+  try {
+    const rows = await res.json();
+    return rows.map(mapRowToBookingRecord);
+  } catch {
+    return [];
+  }
+}
+
+/**
+  Combined bookings list: Supabase (source of truth across all devices)
+  merged with any local-only bookings that haven't synced yet (e.g. offline).
+  This is what the Admin Dashboard and slot-availability checks should use.
+*/
+export async function getAllBookingsAsync(): Promise<BookingRecord[]> {
+  const remote = await fetchBookingsFromSupabase();
+  const local = getSavedBookings();
+
+  const seenRefCodes = new Set(remote.map((b) => b.referenceCode));
+  const localOnly = local.filter((b) => !seenRefCodes.has(b.referenceCode));
+
+  return [...remote, ...localOnly];
+}
+
+/**
+  Get list of booked slot IDs from the combined (Supabase + local) bookings.
+  Used to disable already-booked slots for every patient, on every device.
+*/
+export async function getBookedSlotIdsAsync(): Promise<string[]> {
+  const bookings = await getAllBookingsAsync();
+  return computeBookedSlotIds(bookings);
+}
+
+/**
   Persistent Local Storage Key
 */
 const STORAGE_KEY = 'dr_fahad_appointment_bookings';
@@ -299,10 +412,9 @@ export function getSavedBookings(): BookingRecord[] {
 }
 
 /**
-  Get list of booked slot IDs (ignoring cancelled bookings)
+  Compute booked slot IDs from any list of bookings (ignoring cancelled ones)
 */
-export function getBookedSlotIds(): string[] {
-  const bookings = getSavedBookings();
+export function computeBookedSlotIds(bookings: BookingRecord[]): string[] {
   const bookedSet = new Set<string>();
 
   bookings.forEach((b) => {
@@ -331,6 +443,14 @@ export function getBookedSlotIds(): string[] {
   });
 
   return Array.from(bookedSet);
+}
+
+/**
+  Get list of booked slot IDs from LOCAL storage only (offline fallback).
+  Prefer getBookedSlotIdsAsync() wherever possible so slots stay in sync across devices.
+*/
+export function getBookedSlotIds(): string[] {
+  return computeBookedSlotIds(getSavedBookings());
 }
 
 /**
@@ -394,6 +514,26 @@ export async function saveBookingRecord(bookingState: BookingState): Promise<Boo
   }
 
   return record;
+}
+
+/**
+  Update a booking's status on Supabase by reference code (e.g. mark as cancelled).
+  Returns true if the remote update succeeded (or Supabase isn't configured, in which
+  case the caller should still keep the local update as the source of truth).
+*/
+export async function updateBookingStatusRemote(
+  referenceCode: string,
+  status: BookingRecord['status']
+): Promise<boolean> {
+  const res = await supabaseRequest(
+    `appointments?reference_code=eq.${encodeURIComponent(referenceCode)}`,
+    {
+      method: 'PATCH',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ status }),
+    }
+  );
+  return !!res && res.ok;
 }
 
 /**
