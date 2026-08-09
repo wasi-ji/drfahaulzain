@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Urdu:wght@300;400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+@import "tailwindcss";
+
+/* High-integrity Jameel Noori Nastaleeq Webfont Declarations */
+@font-face {
+  font-family: 'Jameel Noori Nastaleeq';
+  src: url('https://cdn.jsdelivr.net/gh/shm-f/jameel-noori-nastaleeq-kasheeda@master/jameel-noori-nastaleeq-regular.ttf') format('truetype'),
+       url('https://cdn.jsdelivr.net/gh/MuhammadUmer/Jameel-Noori-Nastaleeq@master/Jameel%20Noori%20Nastaleeq%20Regular.ttf') format('truetype'),
+       url('https://cdn.jsdelivr.net/gh/MuhammadUmer/Jameel-Noori-Nastaleeq@master/Jameel%20Noori%20Nastaleeq.ttf') format('truetype'),
+       url('https://font.urdufonts.net/book/jameel-noori-nastaleeq-regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Jameel Noori Nastaleeq Kasheeda';
+  src: url('https://cdn.jsdelivr.net/gh/shm-f/jameel-noori-nastaleeq-kasheeda@master/jameel-noori-nastaleeq-kasheeda.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Custom reassuring clinical palette and warm greys */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-400: #94a3b8;
+  --color-slate-700: #334155;
+  --color-slate-900: #0f172a;
+
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+
+  --color-clinical-50: #f4f8fa;
+  --color-clinical-100: #e8f0f3;
+  --color-clinical-200: #cde1e8;
+  --color-clinical-500: #4a7a8c;
+  --color-clinical-600: #3a5f6e;
+  --color-clinical-700: #2d4955;
+  --color-clinical-800: #20353e;
+  --color-clinical-850: #1a2b33;
+  --color-clinical-900: #142127;
+  --color-clinical-950: #0d161a;
+
+  --color-accent-soft: #fcf8f2;
+  --color-accent-gold: #c39c63;
+  --color-accent-gold-dark: #a17b44;
+}
+
+/* Fallback typography for Right-To-Left layout and custom class Urdu elements */
+html[dir="rtl"], .urdu-mode {
+  --font-sans: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Noto Sans Urdu", "Inter", ui-sans-serif, sans-serif;
+  --font-serif: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Playfair Display", serif;
+  font-size: 112%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #fcfbfc; /* Beautiful soft warm off-white */
+  color: var(--color-clinical-900);
+  scroll-behavior: smooth;
+}
+
+/* Adjust line height slightly and scale font size for Urdu script */
+html[dir="rtl"] body, .urdu-mode body {
+  line-height: 2.1;
+  font-size: 1.05rem;
+}
+
+/* Ensure Urdu Nastaliq cursive ligatures connect smoothly without forced letter-spacing */
+html[dir="rtl"] *, .urdu-mode * {
+  letter-spacing: normal !important;
+}
+
+/* Proportional Urdu text scaling for Jameel Noori Nastaleeq legibility */
+html[dir="rtl"] .text-\[10px\],
+.urdu-mode .text-\[10px\] {
+  font-size: 12.5px !important;
+}
+
+html[dir="rtl"] .text-\[11px\],
+.urdu-mode .text-\[11px\] {
+  font-size: 13.5px !important;
+}
+
+html[dir="rtl"] .text-\[13px\],
+.urdu-mode .text-\[13px\] {
+  font-size: 16px !important;
+}
+
+html[dir="rtl"] .text-xs,
+.urdu-mode .text-xs {
+  font-size: 0.925rem !important;
+}
+
+html[dir="rtl"] .text-sm,
+.urdu-mode .text-sm {
+  font-size: 1.025rem !important;
+}
+
+html[dir="rtl"] .text-base,
+.urdu-mode .text-base {
+  font-size: 1.15rem !important;
+}
+
+/* Custom styles for smooth scroll padding and clean layout */
+html {
+  scroll-padding-top: 80px;
+}
+
+/* Hide scrollbar on beautiful panels if needed */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

@@ -1,0 +1,55 @@
+import { CountryOption } from '../types/booking';
+
+export const PAKISTAN_COUNTRY: CountryOption = {
+  code: 'PK',
+  name: 'Pakistan',
+  currency: 'PKR',
+  fee: 3000,
+  flag: '🇵🇰',
+  isPakistan: true,
+};
+
+export const POPULAR_COUNTRIES: CountryOption[] = [
+  PAKISTAN_COUNTRY,
+  { code: 'AE', name: 'United Arab Emirates', currency: 'USD', fee: 150, flag: '🇦🇪', isPakistan: false },
+  { code: 'SA', name: 'Saudi Arabia', currency: 'USD', fee: 150, flag: '🇸🇦', isPakistan: false },
+  { code: 'GB', name: 'United Kingdom', currency: 'USD', fee: 150, flag: '🇬🇧', isPakistan: false },
+  { code: 'US', name: 'United States', currency: 'USD', fee: 150, flag: '🇺🇸', isPakistan: false },
+  { code: 'CA', name: 'Canada', currency: 'USD', fee: 150, flag: '🇨🇦', isPakistan: false },
+  { code: 'QA', name: 'Qatar', currency: 'USD', fee: 150, flag: '🇶🇦', isPakistan: false },
+  { code: 'OM', name: 'Oman', currency: 'USD', fee: 150, flag: '🇴🇲', isPakistan: false },
+  { code: 'KW', name: 'Kuwait', currency: 'USD', fee: 150, flag: '🇰🇼', isPakistan: false },
+  { code: 'BH', name: 'Bahrain', currency: 'USD', fee: 150, flag: '🇧🇭', isPakistan: false },
+  { code: 'AU', name: 'Australia', currency: 'USD', fee: 150, flag: '🇦🇺', isPakistan: false },
+  { code: 'DE', name: 'Germany', currency: 'USD', fee: 150, flag: '🇩🇪', isPakistan: false },
+];
+
+export const ALL_COUNTRIES: CountryOption[] = [
+  ...POPULAR_COUNTRIES,
+  { code: 'AF', name: 'Afghanistan', currency: 'USD', fee: 150, flag: '🇦🇫', isPakistan: false },
+  { code: 'AT', name: 'Austria', currency: 'USD', fee: 150, flag: '🇦🇹', isPakistan: false },
+  { code: 'BD', name: 'Bangladesh', currency: 'USD', fee: 150, flag: '🇧🇩', isPakistan: false },
+  { code: 'BE', name: 'Belgium', currency: 'USD', fee: 150, flag: '🇧🇪', isPakistan: false },
+  { code: 'CN', name: 'China', currency: 'USD', fee: 150, flag: '🇨🇳', isPakistan: false },
+  { code: 'DK', name: 'Denmark', currency: 'USD', fee: 150, flag: '🇩🇰', isPakistan: false },
+  { code: 'EG', name: 'Egypt', currency: 'USD', fee: 150, flag: '🇪🇬', isPakistan: false },
+  { code: 'FI', name: 'Finland', currency: 'USD', fee: 150, flag: '🇫🇮', isPakistan: false },
+  { code: 'FR', name: 'France', currency: 'USD', fee: 150, flag: '🇫🇷', isPakistan: false },
+  { code: 'IN', name: 'India', currency: 'USD', fee: 150, flag: '🇮🇳', isPakistan: false },
+  { code: 'ID', name: 'Indonesia', currency: 'USD', fee: 150, flag: '🇮🇩', isPakistan: false },
+  { code: 'IE', name: 'Ireland', currency: 'USD', fee: 150, flag: '🇮🇪', isPakistan: false },
+  { code: 'IT', name: 'Italy', currency: 'USD', fee: 150, flag: '🇮🇹', isPakistan: false },
+  { code: 'JP', name: 'Japan', currency: 'USD', fee: 150, flag: '🇯🇵', isPakistan: false },
+  { code: 'JO', name: 'Jordan', currency: 'USD', fee: 150, flag: '🇯🇴', isPakistan: false },
+  { code: 'MY', name: 'Malaysia', currency: 'USD', fee: 150, flag: '🇲🇾', isPakistan: false },
+  { code: 'NL', name: 'Netherlands', currency: 'USD', fee: 150, flag: '🇳🇱', isPakistan: false },
+  { code: 'NZ', name: 'New Zealand', currency: 'USD', fee: 150, flag: '🇳🇿', isPakistan: false },
+  { code: 'NO', name: 'Norway', currency: 'USD', fee: 150, flag: '🇳🇴', isPakistan: false },
+  { code: 'PH', name: 'Philippines', currency: 'USD', fee: 150, flag: '🇵🇭', isPakistan: false },
+  { code: 'SG', name: 'Singapore', currency: 'USD', fee: 150, flag: '🇸🇬', isPakistan: false },
+  { code: 'ZA', name: 'South Africa', currency: 'USD', fee: 150, flag: '🇿🇦', isPakistan: false },
+  { code: 'ES', name: 'Spain', currency: 'USD', fee: 150, flag: '🇪🇸', isPakistan: false },
+  { code: 'SE', name: 'Sweden', currency: 'USD', fee: 150, flag: '🇸🇪', isPakistan: false },
+  { code: 'CH', name: 'Switzerland', currency: 'USD', fee: 150, flag: '🇨🇭', isPakistan: false },
+  { code: 'TR', name: 'Turkey', currency: 'USD', fee: 150, flag: '🇹🇷', isPakistan: false },
+];

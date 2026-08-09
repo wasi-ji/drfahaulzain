@@ -1,0 +1,8 @@
+{
+  "name": "Remix Dr. Fahad Ul Zain - Consultant Psychiatrist",
+  "description": "Premium, calm, and trust-focused homepage for Dr. Fahad Ul Zain, offering psychiatric consultations, research, and compassionate mental health care.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
