@@ -56,8 +56,8 @@ function MainAppContent() {
   };
 
   return (
-    <div className="relative min-h-screen font-sans bg-[#fcfbfc] antialiased text-clinical-900 selection:bg-accent-gold/20 selection:text-clinical-950">
-      
+    <div className="relative min-h-screen w-full overflow-x-hidden font-sans bg-[#fcfbfc] antialiased text-clinical-900 selection:bg-accent-gold/20 selection:text-clinical-950">
+
       {/* Universal Reading progress line at the very top of screen */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-accent-gold origin-left z-55"
@@ -66,7 +66,7 @@ function MainAppContent() {
 
       {/* Persistent Sticky WhatsApp chat Action Button */}
       <div className={`fixed bottom-6 ${isUrdu ? "left-6 items-start" : "right-6 items-end"} z-50 flex flex-col gap-3 pointer-events-none`}>
-        
+
         {/* Soft reassuring info banner */}
         <motion.div
           initial={{ opacity: 0, x: isUrdu ? -20 : 20 }}
@@ -81,7 +81,7 @@ function MainAppContent() {
                 {isUrdu ? "رہنمائی کی ضرورت ہے؟" : "Need Support?"}
               </span>
               <p className="text-[11px] text-clinical-550 leading-relaxed font-sans font-medium">
-                {isUrdu 
+                {isUrdu
                   ? "ڈاکٹر فہد کو براہِ راست واٹس ایپ پر محفوظ پیغام بھیج کر اپوائنٹمنٹ معلوم کریں۔"
                   : "Tap below to send a secure WhatsApp booking message directly to Dr. Fahad."}
               </p>
@@ -106,7 +106,7 @@ function MainAppContent() {
           {/* Wave ripple */}
           <span className="absolute -inset-1 rounded-full border border-emerald-500/30 animate-ping pointer-events-none" />
           <MessageCircle className="w-7 h-7 fill-white/10" />
-          
+
           {/* Tooltip trigger */}
           <span className={`absolute ${isUrdu ? "left-16 origin-left" : "right-16 origin-right"} scale-0 group-hover:scale-100 bg-clinical-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-xl shadow-md uppercase tracking-wider font-sans transition-transform duration-200 whitespace-nowrap`}>
             {isUrdu ? "ڈاکٹر سے بات کریں" : "WhatsApp Doctor"}
@@ -123,7 +123,7 @@ function MainAppContent() {
 
       {/* Main sections */}
       <main className="relative" id="main-content">
-        
+
         {/* 1. Hero */}
         <Hero onBookClick={() => handleOpenBooking('physical', 'nawabshah')} />
 
@@ -156,7 +156,7 @@ function MainAppContent() {
 
         {/* 11. Booking scheduler and Final CTA */}
         <ContactSection onOpenWizard={(mode, location, patient, country) => handleOpenBooking(mode, location, patient, country)} />
-        
+
       </main>
 
       {/* Footer view */}

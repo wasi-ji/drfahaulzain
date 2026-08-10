@@ -50,9 +50,8 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
     <div className="flex items-center gap-0.5 border border-clinical-200/80 bg-clinical-50/50 p-0.5 rounded-full shadow-xs relative z-50 shrink-0">
       <button
         onClick={() => setLanguage("en")}
-        className={`px-1.5 xl:px-2.5 py-0.5 text-[10px] xl:text-[11px] font-bold rounded-full transition-all duration-200 cursor-pointer ${
-          language === "en" ? "bg-clinical-700 text-white shadow-xs" : "text-clinical-600 hover:text-clinical-950"
-        }`}
+        className={`px-1.5 xl:px-2.5 py-0.5 text-[10px] xl:text-[11px] font-bold rounded-full transition-all duration-200 cursor-pointer ${language === "en" ? "bg-clinical-700 text-white shadow-xs" : "text-clinical-600 hover:text-clinical-950"
+          }`}
         title="Switch to English"
         id="btn-lang-en"
       >
@@ -60,9 +59,8 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
       </button>
       <button
         onClick={() => setLanguage("ur")}
-        className={`px-1.5 xl:px-2.5 py-0.5 text-[10px] xl:text-[11px] font-bold rounded-full transition-all duration-200 cursor-pointer ${
-          language === "ur" ? "bg-clinical-700 text-white shadow-xs font-sans" : "text-clinical-600 hover:text-clinical-950"
-        }`}
+        className={`px-1.5 xl:px-2.5 py-0.5 text-[10px] xl:text-[11px] font-bold rounded-full transition-all duration-200 cursor-pointer ${language === "ur" ? "bg-clinical-700 text-white shadow-xs font-sans" : "text-clinical-600 hover:text-clinical-950"
+          }`}
         title="اردو زبان منتخب کریں"
         id="btn-lang-ur"
       >
@@ -74,15 +72,14 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
   return (
     <header
       id="main-header"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-clinical-100 py-2 sm:py-2.5"
           : "bg-transparent py-3 sm:py-4"
-      }`}
+        }`}
     >
       <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-4 xl:px-8">
         <div className="flex items-center justify-between gap-1.5 lg:gap-2 xl:gap-5">
-          
+
           {/* Logo with Doctor Name on a single line */}
           <a
             href="#home"
@@ -163,7 +160,7 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
                 <span>{isUrdu ? "سائن ان" : "Sign In"}</span>
               </button>
             )}
-            
+
             {/* Desktop WhatsApp icon button only */}
             <a
               href={`https://wa.me/${whatsappCleanNumber}?text=Hello%20Dr.%20Fahad%20Ul%20Zain,%20I%20would%20like%20to%20book%20a%20psychiatry%20consultation.`}
@@ -195,8 +192,13 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
               className="p-1.5 rounded-full text-clinical-700 hover:text-clinical-900 hover:bg-clinical-50 focus:outline-none cursor-pointer"
               aria-label="Toggle Menu"
               id="mobile-menu-trigger"
+              title={mobileMenuOpen ? "Close Menu" : "Open Menu"}
             >
-              {mobileMenuOpen ? <X className="w-5.5 h-5.5" /> : <Menu className="w-5.5 h-5.5" />}
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-clinical-900 stroke-[2.5]" />
+              ) : (
+                <Menu className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-clinical-900 stroke-[2.5]" />
+              )}
             </button>
           </div>
         </div>
@@ -219,8 +221,8 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
                   key={item.label}
                   href={item.href}
                   onClick={(e) => {
-                     e.preventDefault();
-                     handleNavClick(item.href);
+                    e.preventDefault();
+                    handleNavClick(item.href);
                   }}
                   className="block px-3 py-2.5 rounded-lg text-sm font-medium text-clinical-700 hover:text-clinical-900 hover:bg-clinical-50"
                 >
