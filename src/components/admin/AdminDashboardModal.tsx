@@ -105,11 +105,17 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
 
   // Filtered Bookings
   const filteredBookings = bookingsList.filter((b) => {
+    // Same "is this booking actually confirmed?" rule used everywhere else in the
+    // dashboard (badge + print report): paid bookings count as confirmed even if
+    // the raw status field is still "pending_payment".
+    const isEffectivelyConfirmed = b.status !== "cancelled" && (b.isPaid || b.status === "confirmed");
+    const isEffectivelyPending = b.status !== "cancelled" && !isEffectivelyConfirmed;
+
     const matchesStatus =
       bookingFilterStatus === "all" ||
       (bookingFilterStatus === "cancelled" && b.status === "cancelled") ||
-      (bookingFilterStatus === "confirmed" && b.status === "confirmed") ||
-      (bookingFilterStatus === "pending" && b.status === "pending_payment");
+      (bookingFilterStatus === "confirmed" && isEffectivelyConfirmed) ||
+      (bookingFilterStatus === "pending" && isEffectivelyPending);
 
     const query = bookingSearchQuery.toLowerCase().trim();
     const matchesSearch =
