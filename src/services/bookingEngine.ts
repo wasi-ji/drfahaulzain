@@ -62,7 +62,7 @@ export function isSameDayPastCutoff(targetDate: Date, now: Date = new Date()): b
     targetDate.getDate() === now.getDate();
 
   if (!isToday) return false;
-  
+
   // Cutoff rule: 12:00 PM Noon (12:00)
   return now.getHours() >= 12;
 }
@@ -208,16 +208,16 @@ export function generateTimeSlots(
   }
 
   // Determine hours range
-  // Nawabshah or (Online on Mon-Fri) -> 16:00 to 21:00 (10 slots)
-  // Hyderabad or (Online on Sunday) -> 15:00 to 17:00 (4 slots)
+  // Physical Nawabshah -> 16:00 to 21:00 (4:00 PM - 9:00 PM, 10 slots)
+  // Physical Hyderabad -> 15:00 to 17:00 (3:00 PM - 5:00 PM, 4 slots)
+  // Online (any allowed day: Mon-Fri & Sunday) -> 14:00 to 16:00 (2:00 PM - 4:00 PM, 4 slots)
   let startHour = 16;
   let endHour = 21;
 
-  if (mode === 'physical' && location === 'hyderabad') {
-    startHour = 15;
-    endHour = 17;
-  } else if (mode === 'online' && dayIndex === 0) {
-    // Sunday online
+  if (mode === 'online') {
+    startHour = 14;
+    endHour = 16;
+  } else if (mode === 'physical' && location === 'hyderabad') {
     startHour = 15;
     endHour = 17;
   }
@@ -327,13 +327,13 @@ function mapRowToBookingRecord(row: any): BookingRecord {
     location: row.location,
     country: row.country
       ? {
-          code: '',
-          name: row.country,
-          currency: (row.currency || 'PKR') as 'PKR' | 'USD',
-          fee: Number(row.fee) || 0,
-          flag: '',
-          isPakistan: row.currency === 'PKR',
-        }
+        code: '',
+        name: row.country,
+        currency: (row.currency || 'PKR') as 'PKR' | 'USD',
+        fee: Number(row.fee) || 0,
+        flag: '',
+        isPakistan: row.currency === 'PKR',
+      }
       : null,
     selectedDate: row.booking_date,
     selectedSlot: row.slot_time

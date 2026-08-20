@@ -134,7 +134,7 @@ export default function ClinicTimings() {
                   {isUrdu ? "متحرک لوکیشنز" : "ACTIVE LOCATIONS"}
                 </span>
                 <span className="block text-sm font-serif font-bold text-clinical-900 leading-tight">
-                  {isUrdu ? "سندھ کنسلٹیشن کلینکس" : "Sindh Consultation Clinics"}
+                  {isUrdu ? "ولی سائیکاٹری سینٹر" : "Wali Psychiatry Centre"}
                 </span>
               </div>
               <span className="bg-emerald-500 w-2.5 h-2.5 rounded-full animate-pulse" />
