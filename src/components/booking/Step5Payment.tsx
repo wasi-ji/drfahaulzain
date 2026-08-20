@@ -80,11 +80,10 @@ export const Step5Payment: React.FC<Step5Props> = ({
         <button
           type="button"
           onClick={() => onSelectPaymentMethod('jazzcash')}
-          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-            paymentMethod === 'jazzcash'
+          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${paymentMethod === 'jazzcash'
               ? 'border-red-600 bg-red-50/50 ring-2 ring-red-500/20 font-bold text-red-950'
               : 'border-clinical-200 bg-white text-clinical-700 hover:bg-clinical-50'
-          }`}
+            }`}
         >
           <Wallet className="w-5 h-5 mx-auto text-red-600 mb-1" />
           <span className="block text-xs font-serif">JazzCash</span>
@@ -95,11 +94,10 @@ export const Step5Payment: React.FC<Step5Props> = ({
         <button
           type="button"
           onClick={() => onSelectPaymentMethod('easypaisa')}
-          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-            paymentMethod === 'easypaisa'
+          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${paymentMethod === 'easypaisa'
               ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-500/20 font-bold text-emerald-950'
               : 'border-clinical-200 bg-white text-clinical-700 hover:bg-clinical-50'
-          }`}
+            }`}
         >
           <Wallet className="w-5 h-5 mx-auto text-emerald-600 mb-1" />
           <span className="block text-xs font-serif">EasyPaisa</span>
@@ -110,11 +108,10 @@ export const Step5Payment: React.FC<Step5Props> = ({
         <button
           type="button"
           onClick={() => onSelectPaymentMethod('bank_transfer')}
-          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-            paymentMethod === 'bank_transfer'
+          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${paymentMethod === 'bank_transfer'
               ? 'border-clinical-700 bg-clinical-50 ring-2 ring-clinical-700/20 font-bold text-clinical-950'
               : 'border-clinical-200 bg-white text-clinical-700 hover:bg-clinical-50'
-          }`}
+            }`}
         >
           <Landmark className="w-5 h-5 mx-auto text-clinical-700 mb-1" />
           <span className="block text-xs font-serif">Bank Transfer</span>
@@ -125,11 +122,10 @@ export const Step5Payment: React.FC<Step5Props> = ({
         <button
           type="button"
           onClick={() => onSelectPaymentMethod('stripe')}
-          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-            paymentMethod === 'stripe'
+          className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${paymentMethod === 'stripe'
               ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 font-bold text-indigo-950'
               : 'border-clinical-200 bg-white text-clinical-700 hover:bg-clinical-50'
-          }`}
+            }`}
         >
           <CreditCard className="w-5 h-5 mx-auto text-indigo-600 mb-1" />
           <span className="block text-xs font-serif">Credit Card</span>
@@ -207,31 +203,57 @@ export const Step5Payment: React.FC<Step5Props> = ({
           <div className="space-y-3">
             <div className={`flex justify-between items-center ${isUrdu ? 'flex-row-reverse' : ''}`}>
               <span className="text-xs font-bold font-serif text-clinical-900">
-                {isUrdu ? 'آن لائن بینک ٹرانسفر (میزان / ایچ بی ایل):' : 'Bank Account IBAN Details:'}
+                {isUrdu ? 'آن لائن بینک ٹرانسفر (ایچ بی ایل):' : 'Bank Account IBAN Details:'}
               </span>
               <span className="text-[10px] bg-clinical-200 text-clinical-800 font-mono px-2 py-0.5 rounded-full">
-                Meezan Bank
+                HBL Bank
               </span>
             </div>
             <div className="bg-white border border-clinical-200 rounded-xl p-3 space-y-2 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-clinical-500">{isUrdu ? 'بینک کا نام:' : 'Bank Name:'}</span>
-                <span className="font-bold text-clinical-900">Meezan Bank Ltd</span>
+                <span className="font-bold text-clinical-900">Habib Bank Ltd</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-clinical-500">{isUrdu ? 'عنوان:' : 'Account Title:'}</span>
-                <span className="font-bold text-clinical-900">Dr. Fahad Ul Zain</span>
+                <span className="font-bold text-clinical-900">Dr. Fahadul Zain</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-clinical-500">{isUrdu ? 'اکاؤنٹ نمبر:' : 'Account No:'}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono font-bold text-clinical-900 text-[11px]">14397901136101</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('14397901136101', 'accountNo')}
+                    className="p-1 text-clinical-500 hover:text-clinical-900 cursor-pointer"
+                  >
+                    {copiedField === 'accountNo' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-clinical-500">IBAN Number:</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono font-bold text-clinical-900 text-[11px]">PK36 MEZN 0001 0203 0405 0607</span>
+                  <span className="font-mono font-bold text-clinical-900 text-[11px]">PK97 HABB 0014 3979 0113 6101</span>
                   <button
                     type="button"
-                    onClick={() => handleCopy('PK36MEZN0001020304050607', 'iban')}
+                    onClick={() => handleCopy('PK97HABB0014397901136101', 'iban')}
                     className="p-1 text-clinical-500 hover:text-clinical-900 cursor-pointer"
                   >
                     {copiedField === 'iban' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-clinical-500">{isUrdu ? 'سوئفٹ کوڈ:' : 'Swift Code:'}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono font-bold text-clinical-900 text-[11px]">HBBKPKKA</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy('HBBKPKKA', 'swift')}
+                    className="p-1 text-clinical-500 hover:text-clinical-900 cursor-pointer"
+                  >
+                    {copiedField === 'swift' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
