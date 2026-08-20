@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Menu, X, Calendar, MessageCircle, Heart, LogIn, LogOut, ShieldAlert, UserCheck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLanguage } from "../context/LanguageContext";
@@ -16,6 +16,7 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
   const { currentUser, isAuthenticated, isAdmin, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +25,25 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Close the mobile/tablet menu automatically when the person taps or clicks
+  // anywhere outside of it (not just the menu button itself).
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [mobileMenuOpen]);
 
   const navItems = [
     { label: t("nav_home"), href: "#home" },
@@ -71,10 +91,11 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
 
   return (
     <header
+      ref={headerRef}
       id="main-header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-        ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-clinical-100 py-2 sm:py-2.5"
-        : "bg-transparent py-3 sm:py-4"
+          ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-clinical-100 py-2 sm:py-2.5"
+          : "bg-transparent py-3 sm:py-4"
         }`}
     >
       <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-4 xl:px-8">
@@ -192,13 +213,8 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
               className="p-1.5 rounded-full text-clinical-700 hover:text-clinical-900 hover:bg-clinical-50 focus:outline-none cursor-pointer"
               aria-label="Toggle Menu"
               id="mobile-menu-trigger"
-              title={mobileMenuOpen ? "Close Menu" : "Open Menu"}
             >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-clinical-900 stroke-[2.5]" />
-              ) : (
-                <Menu className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-clinical-900 stroke-[2.5]" />
-              )}
+              {mobileMenuOpen ? <X className="w-5.5 h-5.5" /> : <Menu className="w-5.5 h-5.5" />}
             </button>
           </div>
         </div>
