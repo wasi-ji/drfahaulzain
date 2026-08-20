@@ -156,9 +156,9 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
   };
 
   // Handle Role Change Execution
-  const executeRoleChange = (userId: string, currentRole: string) => {
+  const executeRoleChange = async (userId: string, currentRole: string) => {
     const newRole = currentRole === "admin" ? "client" : "admin";
-    const res = changeUserRole(userId, newRole);
+    const res = await changeUserRole(userId, newRole);
     if (res.success) {
       setActionNotice({ type: "success", message: isUrdu ? res.messageUr : res.messageEn });
     } else {
@@ -885,8 +885,8 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
 
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <button
-                onClick={() => {
-                  logout();
+                onClick={async () => {
+                  await logout();
                   onClose();
                 }}
                 className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition-all shadow-sm cursor-pointer border border-red-500/50"

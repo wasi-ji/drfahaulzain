@@ -10,10 +10,10 @@ export default function ClinicTimings() {
     {
       type: isUrdu ? "فزیکل کلینک (پیر سے جمعہ)" : "Physical Clinic (Mon – Fri)",
       facility: isUrdu ? "ولی سائیکاٹری سینٹر" : CLINIC_TIMINGS.physical.name,
-      location: isUrdu ? "سکرنڈ روڈ، بالمقابل پیپلزمیڈیکل یونیورسٹی ہسپتال، نوابشاہ" : CLINIC_TIMINGS.physical.address,
+      location: isUrdu ? "پلاٹ 68، محمدی ٹاؤن، ابو آئل مل کے سامنے، زیرو پوائنٹ کے قریب، نوابشاہ" : CLINIC_TIMINGS.physical.address,
       duration: isUrdu ? "شام 4:00 بجے سے رات 9:00 بجے تک" : CLINIC_TIMINGS.physical.hours,
       days: isUrdu ? "سوموار تا جمعہ" : CLINIC_TIMINGS.physical.days,
-      mapUrl: "https://maps.google.com/?q=Wali+Psychiatry+Centre+Sakrand+Road+Nawabshah",
+      mapUrl: "https://maps.app.goo.gl/Ms6NNUeoZBsGagsP9",
       color: "border-clinical-200 bg-white"
     },
     {
@@ -30,7 +30,7 @@ export default function ClinicTimings() {
   return (
     <section id="timings" className="py-20 md:py-28 bg-white border-t border-clinical-100 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <span className="text-xs font-mono font-bold uppercase tracking-widest text-accent-gold-dark block">
@@ -41,14 +41,14 @@ export default function ClinicTimings() {
           </h2>
           <div className="w-16 h-1 bg-accent-gold mx-auto rounded-full" />
           <p className="text-clinical-600 text-sm sm:text-base leading-relaxed">
-            {isUrdu 
+            {isUrdu
               ? "ڈاکٹر فہد الزین سے نوابشاہ اور حیدرآباد کے نجی کلینکس پر ملاقات حاصل کریں۔ طویل انتظار سے بچنے کے لیے وقت کا پہلے تعیّن کرنا بے حد ضروری ہے۔"
               : "Visit Dr. Fahad Ul Zain at these private physical clinic consultations in Sindh. Please schedule in advance to guarantee zero coordinates queue stress."}
           </p>
         </div>
 
         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch ${isUrdu ? "direction-rtl text-right" : "text-left"}`} id="timings-grid">
-          
+
           {/* Left Side: Schedule Cards */}
           <div className="lg:col-span-6 flex flex-col justify-between gap-6">
             <div className="grid grid-cols-1 gap-6">
@@ -116,7 +116,7 @@ export default function ClinicTimings() {
                   {isUrdu ? "کلینک میں داخلے کے اصول" : "Patient Entry Requirements"}
                 </span>
                 <p className="text-xs text-clinical-600 leading-relaxed font-sans">
-                  {isUrdu 
+                  {isUrdu
                     ? "واٹس ایپ یا فون سے بکنگ کے عمل کے بعد مریض کو سیکیور ٹوکن جاری کیا جاتا ہے۔ کلینک پر انتظار کا اوسط وقت ۱۰ منٹ سے کم ہے۔"
                     : "Appointments booked through WhatsApp or phone inquiry receive instant digital diagnostic tokens. Safe patient seating limits queuing waits to under 10 minutes."}
                 </p>
@@ -151,13 +151,13 @@ export default function ClinicTimings() {
                 <MapPin className="w-10 h-10 text-accent-gold mx-auto animate-bounce" />
                 <h4 className="text-lg font-serif font-bold">{isUrdu ? "نوابشاہ اور حیدرآباد" : "Wali Psychiatry & Hyd"}</h4>
                 <p className="text-xs text-white/85 leading-relaxed font-sans">
-                  {isUrdu 
-                    ? "سکرنڈ روڈ نوابشاہ یا حیدرآباد سٹی کے برانچز کے مکمل راستے (GPS) کے حصول کے لیے جدول میں دیئے گئے بٹن پر کلک کریں۔"
-                    : "Click 'Directions Map' in the timetables to trigger complete GPS routes using real-time Google Maps coordinates for Sakrand Road or Hyderabad City."}
+                  {isUrdu
+                    ? "نوابشاہ یا حیدرآباد سٹی کے برانچز کے مکمل راستے (GPS) کے حصول کے لیے جدول میں دیئے گئے بٹن پر کلک کریں۔"
+                    : "Click 'Directions Map' in the timetables to trigger complete GPS routes using real-time Google Maps coordinates for Nawabshah or Hyderabad City."}
                 </p>
                 <div className="pt-2">
                   <a
-                    href="https://maps.google.com/?q=Wali+Psychiatry+Centre+Sakrand+Road+Nawabshah"
+                    href="https://maps.app.goo.gl/Ms6NNUeoZBsGagsP9"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block bg-white text-clinical-900 font-bold text-[11px] uppercase tracking-wider py-2.5 px-5 rounded-lg hover:bg-clinical-50 transition-colors"

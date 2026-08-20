@@ -73,8 +73,8 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
     <header
       id="main-header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-clinical-100 py-2 sm:py-2.5"
-          : "bg-transparent py-3 sm:py-4"
+        ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-clinical-100 py-2 sm:py-2.5"
+        : "bg-transparent py-3 sm:py-4"
         }`}
     >
       <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-4 xl:px-8">
@@ -247,8 +247,8 @@ export default function Header({ onBookClick, onAuthClick, onAdminClick }: Heade
                 {/* Sign In / Sign Out for Mobile */}
                 {isAuthenticated ? (
                   <button
-                    onClick={() => {
-                      logout();
+                    onClick={async () => {
+                      await logout();
                       setMobileMenuOpen(false);
                     }}
                     className="flex items-center justify-center gap-1.5 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 py-2.5 rounded-lg text-xs font-medium cursor-pointer"

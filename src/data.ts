@@ -20,11 +20,11 @@ export const DOCTOR_INFO = {
 
 export const CLINIC_TIMINGS = {
   physical: {
-    name: "Wali Psychiatry Centre",
-    address: "Sakrand Road, Nawabshah",
+    name: "Wali Psychiatry Center",
+    address: "Plot 68, Mohammadi Town, opposite Abu Oil Mill, near Zero Point, Nawabshah",
     days: "Monday – Friday",
     hours: "4:00 PM – 9:00 PM",
-    mapQuery: "Wali Psychiatry Centre, Sakrand Road, Nawabshah"
+    mapQuery: "Wali Psychiatry Center, Plot 68, Mohammadi Town, Nawabshah"
   },
   sunday: {
     name: "Hyderabad Consultation Clinic",

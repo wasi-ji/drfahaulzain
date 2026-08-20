@@ -13,6 +13,7 @@ import {
   blockDate,
   unblockDate,
   cancelAppointmentByAdmin,
+  syncBlockedDatesFromSupabase,
 } from '../services/adminService';
 
 interface AuthContextType {
@@ -21,46 +22,63 @@ interface AuthContextType {
   isAdmin: boolean;
   allUsers: UserAccount[];
   blockedDates: BlockedDateRecord[];
-  login: (email: string, pass: string) => { success: boolean; messageEn: string; messageUr: string };
+  isAuthLoading: boolean;
+  login: (email: string, pass: string) => Promise<{ success: boolean; messageEn: string; messageUr: string }>;
   signup: (
     name: string,
     email: string,
     pass: string,
     phone?: string
-  ) => { success: boolean; messageEn: string; messageUr: string };
-  logout: () => void;
+  ) => Promise<{ success: boolean; messageEn: string; messageUr: string }>;
+  logout: () => Promise<void>;
   changeUserRole: (
     targetUserId: string,
     newRole: UserRole
-  ) => { success: boolean; messageEn: string; messageUr: string };
+  ) => Promise<{ success: boolean; messageEn: string; messageUr: string }>;
   toggleBlockDate: (
     dateStr: string,
     reasonEn?: string,
     reasonUr?: string
-  ) => { success: boolean; messageEn: string; messageUr: string; activeCount?: number };
-  cancelAppointment: (bookingId: string) => { success: boolean; messageEn: string; messageUr: string };
+  ) => Promise<{ success: boolean; messageEn: string; messageUr: string; activeCount?: number }>;
+  cancelAppointment: (bookingId: string) => Promise<{ success: boolean; messageEn: string; messageUr: string }>;
   refreshData: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => getCurrentUserSession());
-  const [allUsers, setAllUsers] = useState<UserAccount[]>(() => getAllUsers());
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(null);
+  const [allUsers, setAllUsers] = useState<UserAccount[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDateRecord[]>(() => getBlockedDates());
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const refreshData = () => {
-    setAllUsers(getAllUsers());
-    setBlockedDates(getBlockedDates());
-    setCurrentUser(getCurrentUserSession());
+    getAllUsers().then(setAllUsers);
+    getCurrentUserSession().then(setCurrentUser);
+    // Pull the latest blocked dates from the central database (Supabase) so
+    // a date blocked on one device is reflected here too.
+    syncBlockedDatesFromSupabase().then(setBlockedDates);
   };
 
   useEffect(() => {
-    refreshData();
+    // On first load (or page refresh), check if there's already a valid
+    // Supabase session (e.g. the person logged in earlier and didn't log out).
+    getCurrentUserSession()
+      .then(setCurrentUser)
+      .finally(() => setIsAuthLoading(false));
+
+    getAllUsers().then(setAllUsers);
+    syncBlockedDatesFromSupabase().then(setBlockedDates);
+
+    // Keep blocked dates reasonably fresh in the background across devices.
+    const interval = setInterval(() => {
+      syncBlockedDatesFromSupabase().then(setBlockedDates);
+    }, 20000);
+    return () => clearInterval(interval);
   }, []);
 
-  const login = (email: string, pass: string) => {
-    const res = loginUser(email, pass);
+  const login = async (email: string, pass: string) => {
+    const res = await loginUser(email, pass);
     if (res.success && res.user) {
       setCurrentUser(res.user);
       refreshData();
@@ -68,8 +86,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: res.success, messageEn: res.messageEn, messageUr: res.messageUr };
   };
 
-  const signup = (name: string, email: string, pass: string, phone?: string) => {
-    const res = registerUser(name, email, pass, phone);
+  const signup = async (name: string, email: string, pass: string, phone?: string) => {
+    const res = await registerUser(name, email, pass, phone);
     if (res.success && res.user) {
       setCurrentUser(res.user);
       refreshData();
@@ -77,24 +95,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: res.success, messageEn: res.messageEn, messageUr: res.messageUr };
   };
 
-  const logout = () => {
-    logoutUser();
+  const logout = async () => {
+    await logoutUser();
     setCurrentUser(null);
     refreshData();
   };
 
-  const changeUserRole = (targetUserId: string, newRole: UserRole) => {
-    const res = updateUserRole(currentUser, targetUserId, newRole);
+  const changeUserRole = async (targetUserId: string, newRole: UserRole) => {
+    const res = await updateUserRole(currentUser, targetUserId, newRole);
     if (res.success) {
       refreshData();
     }
     return res;
   };
 
-  const toggleBlockDate = (dateStr: string, reasonEn?: string, reasonUr?: string) => {
+  const toggleBlockDate = async (dateStr: string, reasonEn?: string, reasonUr?: string) => {
     const isCurrentlyBlocked = blockedDates.some((b) => b.dateStr === dateStr);
     if (isCurrentlyBlocked) {
-      unblockDate(dateStr);
+      await unblockDate(dateStr);
       refreshData();
       return {
         success: true,
@@ -102,7 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         messageUr: `تاریخ ${dateStr} کا بلاک ختم کر دیا گیا ہے۔`,
       };
     } else {
-      const res = blockDate(dateStr, reasonEn, reasonUr, currentUser || undefined);
+      const res = await blockDate(dateStr, reasonEn, reasonUr, currentUser || undefined);
       if (res.success) {
         refreshData();
       }
@@ -115,8 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const cancelAppointment = (bookingId: string) => {
-    const res = cancelAppointmentByAdmin(bookingId);
+  const cancelAppointment = async (bookingId: string) => {
+    const res = await cancelAppointmentByAdmin(bookingId);
     if (res.success) {
       refreshData();
     }
@@ -131,6 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: currentUser?.role === 'admin',
         allUsers,
         blockedDates,
+        isAuthLoading,
         login,
         signup,
         logout,

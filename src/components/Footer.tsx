@@ -9,37 +9,37 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const seoTags = isUrdu 
+  const seoTags = isUrdu
     ? [
-        "نوابشاہ میں ماہر نفسیات",
-        "حیدرآباد میں ماہر امراض نفسيات",
-        "ڈپریشن کا سائنسی علاج",
-        "اینگزائٹی اور گھبراہٹ کا علاج",
-        "بے خوابی کا طبی علاج",
-        "ڈاکٹر فہد الزین",
-        "پیر سے جمعہ او پی ڈی",
-        "اتوار کی او پی ڈی",
-        "رازداری کے ساتھ کونسلنگ",
-        "ذہنی برن آؤٹ"
-      ]
+      "نوابشاہ میں ماہر نفسیات",
+      "حیدرآباد میں ماہر امراض نفسيات",
+      "ڈپریشن کا سائنسی علاج",
+      "اینگزائٹی اور گھبراہٹ کا علاج",
+      "بے خوابی کا طبی علاج",
+      "ڈاکٹر فہد الزین",
+      "پیر سے جمعہ او پی ڈی",
+      "اتوار کی او پی ڈی",
+      "رازداری کے ساتھ کونسلنگ",
+      "ذہنی برن آؤٹ"
+    ]
     : [
-        "Psychiatrist in Nawabshah",
-        "Psychiatrist in Hyderabad",
-        "Mental Health Specialist",
-        "Anxiety Treatment",
-        "Depression Treatment",
-        "Consultant Psychiatrist",
-        "Mental Health Clinic",
-        "Psychiatric Consultation",
-        "Sleep Disorder Treatment",
-        "Stress Management"
-      ];
+      "Psychiatrist in Nawabshah",
+      "Psychiatrist in Hyderabad",
+      "Mental Health Specialist",
+      "Anxiety Treatment",
+      "Depression Treatment",
+      "Consultant Psychiatrist",
+      "Mental Health Clinic",
+      "Psychiatric Consultation",
+      "Sleep Disorder Treatment",
+      "Stress Management"
+    ];
 
   return (
     <footer className="bg-clinical-950 text-slate-200 border-t border-clinical-800 pt-16 pb-8" id="footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12 ${isUrdu ? "direction-rtl text-right" : "text-left"}`}>
-          
+
           {/* Col 1: Brand Info */}
           <div className="space-y-4" id="footer-col-1">
             <div className={`flex items-center gap-2.5 ${isUrdu ? "flex-row-reverse" : ""}`}>
@@ -94,7 +94,9 @@ export default function Footer() {
               <div className={`flex gap-2.5 items-start ${isUrdu ? "flex-row-reverse text-right" : ""}`}>
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <span className="text-slate-200 font-sans leading-relaxed">
-                  {isUrdu ? "ولی سائیکاٹری سینٹر، سکرنڈ روڈ، نوابشاہ" : "Wali Psychiatry Centre, Sakrand Road, Nawabshah"}
+                  {isUrdu
+                    ? "والی سائیکاٹری سینٹر، پلاٹ 68، محمدی ٹاؤن، ابو آئل مل کے سامنے، زیرو پوائنٹ کے قریب، نوابشاہ"
+                    : "Wali Psychiatry Center, Plot 68, Mohammadi Town, opposite Abu Oil Mill, near Zero Point, Nawabshah"}
                 </span>
               </div>
               <div className={`flex gap-2.5 items-start ${isUrdu ? "flex-row-reverse text-right" : ""}`}>

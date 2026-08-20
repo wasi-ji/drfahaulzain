@@ -21,15 +21,17 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
   const [phone, setPhone] = useState("");
 
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedbackMsg(null);
+    setIsSubmitting(true);
 
     if (mode === "signin") {
-      const res = login(email, password);
+      const res = await login(email, password);
       if (res.success) {
         setFeedbackMsg({ type: "success", text: isUrdu ? res.messageUr : res.messageEn });
         setTimeout(() => {
@@ -40,7 +42,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
         setFeedbackMsg({ type: "error", text: isUrdu ? res.messageUr : res.messageEn });
       }
     } else {
-      const res = signup(name, email, password, phone);
+      const res = await signup(name, email, password, phone);
       if (res.success) {
         setFeedbackMsg({ type: "success", text: isUrdu ? res.messageUr : res.messageEn });
         setTimeout(() => {
@@ -51,6 +53,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
         setFeedbackMsg({ type: "error", text: isUrdu ? res.messageUr : res.messageEn });
       }
     }
+    setIsSubmitting(false);
   };
 
   const handleFillTestAdmin = () => {
@@ -254,9 +257,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
 
               <button
                 type="submit"
-                className="w-full bg-clinical-800 hover:bg-clinical-900 text-white font-semibold py-3 px-5 rounded-xl text-sm transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-2"
+                disabled={isSubmitting}
+                className="w-full bg-clinical-800 hover:bg-clinical-900 text-white font-semibold py-3 px-5 rounded-xl text-sm transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {mode === "signin" ? (
+                {isSubmitting ? (
+                  <span>{isUrdu ? "براہ کرم انتظار کریں..." : "Please wait..."}</span>
+                ) : mode === "signin" ? (
                   <>
                     <LogIn className="w-4 h-4" />
                     <span>{isUrdu ? "سائن ان کریں" : "Sign In"}</span>

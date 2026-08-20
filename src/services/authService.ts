@@ -1,77 +1,65 @@
 import { UserAccount, UserRole } from '../types/auth';
+import { supabase } from './supabaseClient';
 
-const USERS_STORAGE_KEY = 'dr_fahad_registered_users';
-const CURRENT_SESSION_KEY = 'dr_fahad_active_session';
+/**
+  This file now uses Supabase's real Authentication system:
+  - Passwords are NEVER handled or stored by our own code. Supabase's
+    "auth.users" table stores them securely (hashed) and we never see them.
+  - Our own "profiles" table (in Supabase) stores the extra info the app
+    needs: name, phone, role, and login timestamps.
+  - Role changes only happen through the secure 'set_user_role' database
+    function, which checks the CALLER is already an admin before allowing it
+    — so a client account can never promote itself.
+*/
 
-// Pre-seeded default admin account for instant access
-const DEFAULT_SUPER_ADMIN: UserAccount = {
-  id: 'usr_admin_001',
-  name: 'Dr. Fahad Admin',
-  email: 'admin@drfahad.com',
-  phone: '+92 370 2207890',
-  role: 'admin',
-  createdAt: '2026-01-01T00:00:00.000Z',
-  lastLoginAt: '2026-08-07T00:00:00.000Z',
-};
-
-// Internal map for stored passwords (in memory/localStorage mock auth)
-const PASSWORDS_STORAGE_KEY = 'dr_fahad_user_passwords';
-
-function getPasswordsMap(): Record<string, string> {
-  try {
-    const raw = localStorage.getItem(PASSWORDS_STORAGE_KEY);
-    const map = raw ? JSON.parse(raw) : {};
-    if (!map['admin@drfahad.com']) {
-      map['admin@drfahad.com'] = 'admin123';
-    }
-    return map;
-  } catch {
-    return { 'admin@drfahad.com': 'admin123' };
-  }
-}
-
-function savePasswordsMap(map: Record<string, string>): void {
-  localStorage.setItem(PASSWORDS_STORAGE_KEY, JSON.stringify(map));
+function mapProfileRow(row: any): UserAccount {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone || undefined,
+    role: row.role,
+    createdAt: row.created_at,
+    lastLoginAt: row.last_login_at,
+  };
 }
 
 /**
- * Retrieve all registered users
+ * Retrieve all registered users (admin dashboard "Registered Users" table)
  */
-export function getAllUsers(): UserAccount[] {
-  try {
-    const raw = localStorage.getItem(USERS_STORAGE_KEY);
-    if (!raw) {
-      // Seed default admin
-      const initial = [DEFAULT_SUPER_ADMIN];
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initial));
-      return initial;
-    }
-    const list: UserAccount[] = JSON.parse(raw);
-    // Ensure default admin exists
-    if (!list.some((u) => u.email.toLowerCase() === DEFAULT_SUPER_ADMIN.email.toLowerCase())) {
-      list.unshift(DEFAULT_SUPER_ADMIN);
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(list));
-    }
-    return list;
-  } catch {
-    return [DEFAULT_SUPER_ADMIN];
-  }
-}
+export async function getAllUsers(): Promise<UserAccount[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-function saveUsersList(users: UserAccount[]): void {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  if (error || !data) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+  return data.map(mapProfileRow);
 }
 
 /**
  * Register a new user.
- * Requirement 5: Whenever a new user signs up, their role is ALWAYS 'client' ('user').
+ * Requirement: Whenever a new user signs up, their role is ALWAYS 'client'.
+ * (Enforced server-side by the on_auth_user_created trigger, not just here.)
  */
-export function registerUser(
+export async function registerUser(
   name: string,
   email: string,
   pass: string,
   phone?: string
-): { success: boolean; user?: UserAccount; messageEn: string; messageUr: string } {
+): Promise<{ success: boolean; user?: UserAccount; messageEn: string; messageUr: string }> {
+  if (!supabase) {
+    return {
+      success: false,
+      messageEn: 'System is not connected to the database. Please contact support.',
+      messageUr: 'سسٹم ڈیٹا بیس سے منسلک نہیں ہے۔ براہ کرم سپورٹ سے رابطہ کریں۔',
+    };
+  }
+
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanEmail || !pass.trim() || !name.trim()) {
     return {
@@ -81,39 +69,33 @@ export function registerUser(
     };
   }
 
-  const users = getAllUsers();
-  if (users.some((u) => u.email.toLowerCase() === cleanEmail)) {
+  const { data, error } = await supabase.auth.signUp({
+    email: cleanEmail,
+    password: pass,
+    options: {
+      data: { name: name.trim(), phone: phone?.trim() || null },
+    },
+  });
+
+  if (error || !data.user) {
+    const isDuplicate = error?.message?.toLowerCase().includes('already registered');
     return {
       success: false,
-      messageEn: 'An account with this email address already exists. Please sign in.',
-      messageUr: 'اس ای میل کے ساتھ اکاؤنٹ پہلے سے موجود ہے۔ براہ کرم سائن ان کریں۔',
+      messageEn: isDuplicate
+        ? 'An account with this email address already exists. Please sign in.'
+        : error?.message || 'Failed to create account.',
+      messageUr: isDuplicate
+        ? 'اس ای میل کے ساتھ اکاؤنٹ پہلے سے موجود ہے۔ براہ کرم سائن ان کریں۔'
+        : 'اکاؤنٹ نہیں بن سکا۔',
     };
   }
 
-  // Create new user explicitly as 'client'
-  const newUser: UserAccount = {
-    id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    name: name.trim(),
-    email: cleanEmail,
-    phone: phone?.trim(),
-    role: 'client', // STRICT RULE 5: Always 'client' by default
-    createdAt: new Date().toISOString(),
-    lastLoginAt: new Date().toISOString(),
-  };
-
-  users.unshift(newUser);
-  saveUsersList(users);
-
-  const pwdMap = getPasswordsMap();
-  pwdMap[cleanEmail] = pass;
-  savePasswordsMap(pwdMap);
-
-  // Set active session
-  setCurrentUserSession(newUser);
+  // The database trigger creates the profile row automatically; fetch it.
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
 
   return {
     success: true,
-    user: newUser,
+    user: profile ? mapProfileRow(profile) : undefined,
     messageEn: 'Account created successfully! Welcome as Client.',
     messageUr: 'اکاؤنٹ کامیابی سے بن گیا ہے! بطور کلائنٹ خوش آمدید۔',
   };
@@ -122,18 +104,26 @@ export function registerUser(
 /**
  * Log in an existing user
  */
-export function loginUser(
+export async function loginUser(
   email: string,
   pass: string
-): { success: boolean; user?: UserAccount; messageEn: string; messageUr: string } {
+): Promise<{ success: boolean; user?: UserAccount; messageEn: string; messageUr: string }> {
+  if (!supabase) {
+    return {
+      success: false,
+      messageEn: 'System is not connected to the database. Please contact support.',
+      messageUr: 'سسٹم ڈیٹا بیس سے منسلک نہیں ہے۔ براہ کرم سپورٹ سے رابطہ کریں۔',
+    };
+  }
+
   const cleanEmail = email.trim().toLowerCase();
-  const users = getAllUsers();
-  const pwdMap = getPasswordsMap();
 
-  const user = users.find((u) => u.email.toLowerCase() === cleanEmail);
-  const correctPass = pwdMap[cleanEmail];
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: cleanEmail,
+    password: pass,
+  });
 
-  if (!user || correctPass !== pass) {
+  if (error || !data.user) {
     return {
       success: false,
       messageEn: 'Invalid email address or password. Please try again.',
@@ -141,11 +131,20 @@ export function loginUser(
     };
   }
 
-  // Update last login timestamp
-  user.lastLoginAt = new Date().toISOString();
-  saveUsersList(users);
+  // Update last login timestamp via the secure function (updates only OWN row)
+  await supabase.rpc('bump_last_login');
 
-  setCurrentUserSession(user);
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
+
+  if (!profile) {
+    return {
+      success: false,
+      messageEn: 'Account found but profile data is missing. Please contact support.',
+      messageUr: 'اکاؤنٹ ملا لیکن پروفائل ڈیٹا موجود نہیں۔ سپورٹ سے رابطہ کریں۔',
+    };
+  }
+
+  const user = mapProfileRow(profile);
 
   return {
     success: true,
@@ -156,43 +155,46 @@ export function loginUser(
 }
 
 /**
- * Get active user session
+ * Get active user session (checks Supabase's real session, e.g. after page reload)
  */
-export function getCurrentUserSession(): UserAccount | null {
-  try {
-    const raw = localStorage.getItem(CURRENT_SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+export async function getCurrentUserSession(): Promise<UserAccount | null> {
+  if (!supabase) return null;
 
-/**
- * Set active user session
- */
-export function setCurrentUserSession(user: UserAccount | null): void {
-  if (!user) {
-    localStorage.removeItem(CURRENT_SESSION_KEY);
-  } else {
-    localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(user));
-  }
+  const { data: sessionData } = await supabase.auth.getSession();
+  const authUser = sessionData.session?.user;
+  if (!authUser) return null;
+
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', authUser.id).single();
+  return profile ? mapProfileRow(profile) : null;
 }
 
 /**
  * Logout
  */
-export function logoutUser(): void {
-  localStorage.removeItem(CURRENT_SESSION_KEY);
+export async function logoutUser(): Promise<void> {
+  if (!supabase) return;
+  await supabase.auth.signOut();
 }
 
 /**
- * Requirement 6: Only Admin has the right to change a user's role to Admin or Client
+ * Only Admin has the right to change a user's role to Admin or Client.
+ * This calls the secure 'set_user_role' database function, which re-checks
+ * (server-side) that the currently signed-in user is actually an admin —
+ * so this can't be bypassed even by tampering with the app's own code.
  */
-export function updateUserRole(
+export async function updateUserRole(
   executorUser: UserAccount | null,
   targetUserId: string,
   newRole: UserRole
-): { success: boolean; messageEn: string; messageUr: string } {
+): Promise<{ success: boolean; messageEn: string; messageUr: string }> {
+  if (!supabase) {
+    return {
+      success: false,
+      messageEn: 'System is not connected to the database.',
+      messageUr: 'سسٹم ڈیٹا بیس سے منسلک نہیں ہے۔',
+    };
+  }
+
   if (!executorUser || executorUser.role !== 'admin') {
     return {
       success: false,
@@ -201,29 +203,22 @@ export function updateUserRole(
     };
   }
 
-  const users = getAllUsers();
-  const target = users.find((u) => u.id === targetUserId);
+  const { error } = await supabase.rpc('set_user_role', {
+    target_id: targetUserId,
+    new_role: newRole,
+  });
 
-  if (!target) {
+  if (error) {
     return {
       success: false,
-      messageEn: 'Target user not found.',
-      messageUr: 'صارف نہیں مل سکا۔',
+      messageEn: error.message || 'Failed to update user role.',
+      messageUr: 'صارف کا رول تبدیل نہیں ہو سکا۔',
     };
-  }
-
-  target.role = newRole;
-  saveUsersList(users);
-
-  // If target user is the current active session, update active session as well
-  const currentSession = getCurrentUserSession();
-  if (currentSession && currentSession.id === target.id) {
-    setCurrentUserSession(target);
   }
 
   return {
     success: true,
-    messageEn: `User role for ${target.name} has been updated to ${newRole.toUpperCase()}.`,
-    messageUr: `${target.name} کا رول کامیابی سے ${newRole === 'admin' ? 'ایڈمن' : 'کلائنٹ'} کر دیا گیا ہے۔`,
+    messageEn: `User role has been updated to ${newRole.toUpperCase()}.`,
+    messageUr: `صارف کا رول کامیابی سے ${newRole === 'admin' ? 'ایڈمن' : 'کلائنٹ'} کر دیا گیا ہے۔`,
   };
 }
