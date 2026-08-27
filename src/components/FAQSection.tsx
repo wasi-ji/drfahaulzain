@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useLanguage } from "../context/LanguageContext";
+import { FAQS } from "../data";
 
 export default function FAQSection() {
   const { isUrdu, t, localizedFAQs } = useLanguage();
@@ -11,8 +12,27 @@ export default function FAQSection() {
     setOpenIndex(openIndex === idx ? null : idx);
   };
 
+  // AEO: FAQPage structured data. This lets AI answer engines (ChatGPT,
+  // Perplexity, Google AI Overviews) read these Q&A pairs directly in a
+  // machine-readable format, instead of only seeing the visual accordion.
+  // Always uses the English FAQ text so the schema stays consistent
+  // regardless of which language the visitor has selected.
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
     <section id="faqs" className="py-20 md:py-28 bg-clinical-50/50 border-t border-clinical-100">
+      <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}

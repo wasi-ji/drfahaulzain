@@ -144,7 +144,7 @@ export default function ClinicTimings() {
             <div className="w-full h-full relative flex items-center justify-center overflow-hidden">
               <img
                 src={clinicLobbyImage}
-                alt="Wali Psychiatry Centre Nawabshah Interior Lobby Map Location"
+                alt="Wali Psychiatry Center Nawabshah - Clinic Interior and Location"
                 className="absolute inset-0 w-full h-full object-cover brightness-[0.45]"
                 referrerPolicy="no-referrer"
               />
