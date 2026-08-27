@@ -111,6 +111,12 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
     const isEffectivelyConfirmed = b.status !== "cancelled" && (b.isPaid || b.status === "confirmed");
     const isEffectivelyPending = b.status !== "cancelled" && !isEffectivelyConfirmed;
 
+    // Hide past-dated appointments from this view once their date has gone by —
+    // the record stays saved in the database, it just no longer clutters the
+    // active list shown to the admin here.
+    const todayStr = new Date().toISOString().split("T")[0];
+    const isUpcomingOrToday = b.selectedDate >= todayStr;
+
     const matchesStatus =
       bookingFilterStatus === "all" ||
       (bookingFilterStatus === "cancelled" && b.status === "cancelled") ||
@@ -125,7 +131,7 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
       b.referenceCode.toLowerCase().includes(query) ||
       b.selectedDate.includes(query);
 
-    return matchesStatus && matchesSearch;
+    return isUpcomingOrToday && matchesStatus && matchesSearch;
   });
 
   // Handle Cancel Appointment Execution
@@ -222,31 +228,30 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
             </tr>
           </thead>
           <tbody>
-            ${
-              filteredBookings.length === 0
-                ? `<tr><td colspan="8" style="padding: 20px; text-align: center; color: #64748b;">No appointment records found.</td></tr>`
-                : filteredBookings
-                    .map((b, idx) => {
-                      // Same logic as the on-screen dashboard table: a paid booking counts
-                      // as Confirmed even if the raw status field hasn't been updated yet.
-                      const displayStatus =
-                        b.status === "cancelled"
-                          ? "CANCELLED"
-                          : b.isPaid || b.status === "confirmed"
-                          ? "CONFIRMED"
-                          : "PENDING PAYMENT";
-                      const statusColor =
-                        displayStatus === "CONFIRMED" ? "#16a34a" : displayStatus === "CANCELLED" ? "#dc2626" : "#d97706";
+            ${filteredBookings.length === 0
+          ? `<tr><td colspan="8" style="padding: 20px; text-align: center; color: #64748b;">No appointment records found.</td></tr>`
+          : filteredBookings
+            .map((b, idx) => {
+              // Same logic as the on-screen dashboard table: a paid booking counts
+              // as Confirmed even if the raw status field hasn't been updated yet.
+              const displayStatus =
+                b.status === "cancelled"
+                  ? "CANCELLED"
+                  : b.isPaid || b.status === "confirmed"
+                    ? "CONFIRMED"
+                    : "PENDING PAYMENT";
+              const statusColor =
+                displayStatus === "CONFIRMED" ? "#16a34a" : displayStatus === "CANCELLED" ? "#dc2626" : "#d97706";
 
-                      // For online consultations, the fee/city depend on the patient's
-                      // COUNTRY (Pakistan = PKR 3,000, elsewhere = USD 150) — not the
-                      // physical clinic location, which only applies to in-person visits.
-                      const cityOrCountry =
-                        b.mode === "physical" ? b.location : b.country?.name || "Unknown Country";
-                      const currency = b.country?.currency || "PKR";
-                      const feeDisplay = `${currency} ${(b.country?.fee || 0).toLocaleString()}`;
+              // For online consultations, the fee/city depend on the patient's
+              // COUNTRY (Pakistan = PKR 3,000, elsewhere = USD 150) — not the
+              // physical clinic location, which only applies to in-person visits.
+              const cityOrCountry =
+                b.mode === "physical" ? b.location : b.country?.name || "Unknown Country";
+              const currency = b.country?.currency || "PKR";
+              const feeDisplay = `${currency} ${(b.country?.fee || 0).toLocaleString()}`;
 
-                      return `
+              return `
               <tr style="background-color: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">${idx + 1}</td>
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold; font-family: monospace;">${b.referenceCode}</td>
@@ -258,9 +263,9 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold; color: ${statusColor};">${displayStatus}</td>
               </tr>
             `;
-                    })
-                    .join("")
-            }
+            })
+            .join("")
+        }
           </tbody>
         </table>
       `;
@@ -283,21 +288,20 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
           </thead>
           <tbody>
             ${allUsers
-              .map(
-                (u, idx) => `
+          .map(
+            (u, idx) => `
               <tr style="background-color: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">${idx + 1}</td>
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold;">${u.name}</td>
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">${u.email}</td>
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">${u.phone || "N/A"}</td>
-                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold; color: ${
-                  u.role === "admin" ? "#7c3aed" : "#334155"
-                };">${u.role.toUpperCase()}</td>
+                <td style="padding: 8px 10px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold; color: ${u.role === "admin" ? "#7c3aed" : "#334155"
+              };">${u.role.toUpperCase()}</td>
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">${new Date(u.createdAt).toLocaleDateString()}</td>
               </tr>
             `
-              )
-              .join("")}
+          )
+          .join("")}
           </tbody>
         </table>
       `;
@@ -318,12 +322,11 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
             </tr>
           </thead>
           <tbody>
-            ${
-              blockedDates.length === 0
-                ? `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #64748b;">No blocked dates currently.</td></tr>`
-                : blockedDates
-                    .map(
-                      (bd, idx) => `
+            ${blockedDates.length === 0
+          ? `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #64748b;">No blocked dates currently.</td></tr>`
+          : blockedDates
+            .map(
+              (bd, idx) => `
               <tr style="background-color: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">${idx + 1}</td>
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0; font-weight: bold; color: #dc2626;">${bd.dateStr}</td>
@@ -332,9 +335,9 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
                 <td style="padding: 8px 10px; border: 1px solid #e2e8f0;">${bd.blockedBy || "Admin"}</td>
               </tr>
             `
-                    )
-                    .join("")
-            }
+            )
+            .join("")
+        }
           </tbody>
         </table>
       `;
@@ -400,9 +403,8 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
           initial={{ opacity: 0, scale: 0.96, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 20 }}
-          className={`relative bg-white rounded-3xl shadow-2xl border border-clinical-100 w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden z-10 ${
-            isUrdu ? "text-right" : "text-left"
-          }`}
+          className={`relative bg-white rounded-3xl shadow-2xl border border-clinical-100 w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden z-10 ${isUrdu ? "text-right" : "text-left"
+            }`}
           dir={isUrdu ? "rtl" : "ltr"}
         >
           {/* Admin Header */}
@@ -464,11 +466,10 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
             <div className={`flex items-center gap-2 min-w-max ${isUrdu ? "flex-row-reverse" : ""}`}>
               <button
                 onClick={() => setActiveTab("bookings_report")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap ${
-                  activeTab === "bookings_report"
-                    ? "bg-clinical-800 text-white shadow-sm ring-1 ring-clinical-700"
-                    : "bg-white text-clinical-700 hover:bg-clinical-100 border border-clinical-200/80"
-                }`}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap ${activeTab === "bookings_report"
+                  ? "bg-clinical-800 text-white shadow-sm ring-1 ring-clinical-700"
+                  : "bg-white text-clinical-700 hover:bg-clinical-100 border border-clinical-200/80"
+                  }`}
               >
                 <FileText className="w-4 h-4 shrink-0" />
                 <span>{isUrdu ? "رپورٹ 1: تمام اپوائنٹمنٹس" : "Report 1: All Appointments"}</span>
@@ -479,11 +480,10 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
 
               <button
                 onClick={() => setActiveTab("users_report")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap ${
-                  activeTab === "users_report"
-                    ? "bg-clinical-800 text-white shadow-sm ring-1 ring-clinical-700"
-                    : "bg-white text-clinical-700 hover:bg-clinical-100 border border-clinical-200/80"
-                }`}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap ${activeTab === "users_report"
+                  ? "bg-clinical-800 text-white shadow-sm ring-1 ring-clinical-700"
+                  : "bg-white text-clinical-700 hover:bg-clinical-100 border border-clinical-200/80"
+                  }`}
               >
                 <Users className="w-4 h-4 shrink-0" />
                 <span>{isUrdu ? "رپورٹ 2: رجسٹرڈ صارفین" : "Report 2: Registered Users"}</span>
@@ -494,17 +494,15 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
 
               <button
                 onClick={() => setActiveTab("date_controls")}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap ${
-                  activeTab === "date_controls"
-                    ? "bg-amber-600 text-white shadow-sm ring-1 ring-amber-500"
-                    : "bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-300"
-                }`}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0 whitespace-nowrap ${activeTab === "date_controls"
+                  ? "bg-amber-600 text-white shadow-sm ring-1 ring-amber-500"
+                  : "bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-300"
+                  }`}
               >
                 <CalendarX className={`w-4 h-4 shrink-0 ${activeTab === "date_controls" ? "text-white" : "text-amber-600"}`} />
                 <span>{isUrdu ? "تاریخوں کی بندش / کنٹرول (Rule 3)" : "Manage Blocked Dates"}</span>
-                <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                  activeTab === "date_controls" ? "bg-white/25 text-white" : "bg-amber-200/80 text-amber-950"
-                }`}>
+                <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${activeTab === "date_controls" ? "bg-white/25 text-white" : "bg-amber-200/80 text-amber-950"
+                  }`}>
                   {blockedDates.length}
                 </span>
               </button>
@@ -514,11 +512,10 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
           {/* Alert / Notice Display */}
           {actionNotice && (
             <div
-              className={`mx-6 mt-4 p-3.5 rounded-xl border text-xs font-medium flex items-center justify-between gap-3 ${
-                actionNotice.type === "success"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                  : "bg-red-50 border-red-200 text-red-800"
-              }`}
+              className={`mx-6 mt-4 p-3.5 rounded-xl border text-xs font-medium flex items-center justify-between gap-3 ${actionNotice.type === "success"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                : "bg-red-50 border-red-200 text-red-800"
+                }`}
             >
               <div className="flex items-center gap-2">
                 {actionNotice.type === "success" ? (
@@ -729,11 +726,10 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
                               ) : (
                                 <button
                                   onClick={() => setRoleToChange({ userId: user.id, userName: user.name, currentRole: user.role })}
-                                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer inline-flex items-center gap-1 ${
-                                    user.role === "admin"
-                                      ? "bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300"
-                                      : "bg-purple-50 hover:bg-purple-100 text-purple-900 border-purple-300"
-                                  }`}
+                                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer inline-flex items-center gap-1 ${user.role === "admin"
+                                    ? "bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300"
+                                    : "bg-purple-50 hover:bg-purple-100 text-purple-900 border-purple-300"
+                                    }`}
                                 >
                                   <span>
                                     {user.role === "admin"
@@ -741,8 +737,8 @@ export default function AdminDashboardModal({ isOpen, onClose }: AdminDashboardM
                                         ? "کلائنٹ بنائیں"
                                         : "Revoke Admin (Set Client)"
                                       : isUrdu
-                                      ? "ایڈمن بنائیں"
-                                      : "Promote to Admin"}
+                                        ? "ایڈمن بنائیں"
+                                        : "Promote to Admin"}
                                   </span>
                                 </button>
                               )}
