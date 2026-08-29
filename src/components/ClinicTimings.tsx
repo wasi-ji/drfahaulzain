@@ -2,7 +2,7 @@ import { MapPin, MessageSquare, Clock, ArrowUpRight, ShieldAlert } from "lucide-
 import { CLINIC_TIMINGS } from "../data";
 import { useLanguage } from "../context/LanguageContext";
 import { motion } from "motion/react";
-import clinicLobbyImage from "../assets/images/serene_clinic_lobby_1781719436801.jpg";
+
 
 export default function ClinicTimings() {
   const { isUrdu, t } = useLanguage();
@@ -143,7 +143,7 @@ export default function ClinicTimings() {
             {/* Simulated Clean Map Visual Placeholder */}
             <div className="w-full h-full relative flex items-center justify-center overflow-hidden">
               <img
-                src={clinicLobbyImage}
+                src="/images/wali-psychiatry-center-nawabshah-clinic.jpg"
                 alt="Wali Psychiatry Center Nawabshah - Clinic Interior and Location"
                 className="absolute inset-0 w-full h-full object-cover brightness-[0.45]"
                 referrerPolicy="no-referrer"

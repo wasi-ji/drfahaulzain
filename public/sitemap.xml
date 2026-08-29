@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://drfahadzain.netlify.app/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://drfahadzain.netlify.app/images/dr-fahad-ul-zain-psychiatrist-nawabshah.jpg</image:loc>
+      <image:title>Dr. Fahad Ul Zain - Consultant Psychiatrist in Nawabshah and Hyderabad</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://drfahadzain.netlify.app/images/dr-fahad-ul-zain-consultant-psychiatrist.jpg</image:loc>
+      <image:title>Dr. Fahad Ul Zain - MBBS, MD Psychiatry, PMDC Registered</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://drfahadzain.netlify.app/images/wali-psychiatry-center-nawabshah-clinic.jpg</image:loc>
+      <image:title>Wali Psychiatry Center Nawabshah - Clinic Interior</image:title>
+    </image:image>
   </url>
 </urlset>

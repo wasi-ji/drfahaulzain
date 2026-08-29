@@ -1,7 +1,7 @@
 import { ShieldCheck, MessageCircle, Calendar, Sparkles, CheckCircle2, Award } from "lucide-react";
 import { motion } from "motion/react";
 import { useLanguage } from "../context/LanguageContext";
-import doctorPhoto from "../assets/images/dr_fahad_portrait_1781719416858.jpg";
+
 
 interface HeroProps {
   onBookClick: () => void;
@@ -37,7 +37,7 @@ export default function Hero({ onBookClick }: HeroProps) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center ${isUrdu ? "lg:direction-rtl" : ""}`}>
-          
+
           {/* Left Column Content */}
           <div className="lg:col-span-7 space-y-8" id="hero-left">
             {/* Soft trust badge */}
@@ -49,8 +49,8 @@ export default function Hero({ onBookClick }: HeroProps) {
             >
               <Award className="w-3.5 h-3.5 text-accent-gold" />
               <span>
-                {isUrdu 
-                  ? "پی ایم ڈی سی رجسٹرڈ (54095-S) • ایم بی بی ایس، ایم ڈی (نفسیات)" 
+                {isUrdu
+                  ? "پی ایم ڈی سی رجسٹرڈ (54095-S) • ایم بی بی ایس، ایم ڈی (نفسیات)"
                   : "PMDC Registered (54095-S) • MBBS, MD (Psychiatry)"}
               </span>
             </motion.div>
@@ -90,7 +90,7 @@ export default function Hero({ onBookClick }: HeroProps) {
                 transition={{ duration: 0.7, delay: 0.2 }}
                 className="text-base sm:text-lg text-clinical-600 leading-relaxed font-sans max-w-2xl"
               >
-                {isUrdu 
+                {isUrdu
                   ? "شدید بے چینی (اینگزائٹی)، ڈپریشن، کام کے دباؤ، نیند کے مسائل، جذباتی تحفظ، اور ہر عمر کے چیلنجز کے لیے تسلی بخش اور مکمل خفیہ ذہنی صحت کی سہولت۔"
                   : "Compassionate psychiatric consultation for anxiety, depression, stress, sleep problems, emotional wellbeing, and mental health support."}
               </motion.p>
@@ -155,12 +155,12 @@ export default function Hero({ onBookClick }: HeroProps) {
               {/* Main portrait image (No-referrer compliance) */}
               <div className="relative rounded-3xl overflow-hidden aspect-[3/4] shadow-xl border border-clinical-100 bg-clinical-50">
                 <img
-                  src={doctorPhoto}
+                  src="/images/dr-fahad-ul-zain-psychiatrist-nawabshah.jpg"
                   alt={isUrdu ? "ڈاکٹر فہد الزین" : "Dr. Fahad Ul Zain - Consultant Psychiatrist"}
                   className="w-full h-full object-cover transition-transform duration-700 hover:scale-102"
                   referrerPolicy="no-referrer"
                 />
-                
+
                 {/* Safe overlay overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-clinical-950/45 via-transparent to-transparent pointer-events-none" />
 

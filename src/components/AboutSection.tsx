@@ -1,7 +1,7 @@
 import { Award, BookOpen, Quote, Sparkles, GraduationCap, CheckCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useLanguage } from "../context/LanguageContext";
-import doctorPhoto from "../assets/images/dr_fahad_portrait_1781719416858.jpg";
+
 
 export default function AboutSection() {
   const { isUrdu, t } = useLanguage();
@@ -36,17 +36,17 @@ export default function AboutSection() {
     <section id="about" className="py-20 md:py-28 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center ${isUrdu ? "lg:direction-rtl" : ""}`}>
-          
+
           {/* Left Column: Visual Collage or Side Banner */}
           <div className="lg:col-span-5 relative" id="about-visuals">
             <div className="relative max-w-sm mx-auto">
               <div className="absolute inset-0 bg-clinical-100 rounded-3xl transform rotate-3 pointer-events-none" />
               <div className="absolute inset-0 border-2 border-accent-gold/20 rounded-3xl transform -rotate-1 pointer-events-none" />
-              
+
               {/* Profile Image card layout */}
               <div className="relative bg-clinical-50 shadow-md rounded-3xl overflow-hidden aspect-[4/5] border border-clinical-100">
                 <img
-                  src={doctorPhoto}
+                  src="/images/dr-fahad-ul-zain-consultant-psychiatrist.jpg"
                   alt="Dr. Fahad Ul Zain Clinical Consultation Portrait"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
@@ -141,7 +141,7 @@ export default function AboutSection() {
                 "{t("about_philosophy_text")}"
               </blockquote>
               <cite className="block text-xs font-mono text-clinical-500 uppercase tracking-widest mt-3.5 not-italic">
-                {isUrdu 
+                {isUrdu
                   ? "— ڈاکٹر فہد الزین، پی ایم ڈی سی رجسٹریشن: 54095-S"
                   : "— Dr. Fahad Ul Zain, PMDC Registration: 54095-S"}
               </cite>
